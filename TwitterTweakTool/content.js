@@ -33,28 +33,13 @@ function forceNewestTweetApply() {
     currentUrl = nowUrl;
     return;
   }
-  let select = document
-  .evaluate(
-    "//div[@role='tablist']/div[@role='presentation']/a/div/div/div",
-    document,
-    null,
-    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-    null
-  );
-  let osusumeTab = select.snapshotItem(0); // 「おすすめ」の欄を取得
-  let followTab = select.snapshotItem(1); // 「フォロー中」の欄を取得
-  if (osusumeTab) {
-    let tabColor = window
-      .getComputedStyle(osusumeTab)
-      .getPropertyValue("background-color");
-    // 選択されている場合、rgb は 0.0.0 ではないはずなので、これがヒットしない場合、「おすすめ」が選択されている。
-    if (tabColor.indexOf("0, 0, 0") >= 0) {
-      // おすすめが選択されていない場合は何もしない。
-      return;
-    }
-    // おすすめが選択されているならフォロー中を選択する。
-    followTab.click();
-    currentUrl = nowUrl;
+  let ossumeTabSelected = document.evaluate("//div[@role='tab' and @aria-selected='true' and descendant::span[text()='おすすめ']]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
+  let followTab = document.evaluate("//div[@role='tab' and @aria-selected and descendant::span[text()='フォロー中']]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
+  // 「おすすめ」タブが選択されている場合には「フォロー中」タブを .click() する
+  if (ossumeTabSelected && followTab) {
+  console.log("TTT: フォロー中を選択します。")
+	followTab.click();
+	currentUrl = nowUrl;
   }
 }
 
