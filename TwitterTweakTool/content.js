@@ -23,6 +23,7 @@ function forceNewestTweetApply() {
   if (nowUrl == currentUrl) {
     return;
   }
+  currentUrl = nowUrl;
   let homeUrlArray = [
     "https://twitter.com/home",
     "https://mobile.twitter.com/home",
@@ -30,7 +31,6 @@ function forceNewestTweetApply() {
     "https://mobile.x.com/home",
   ];
   if (!homeUrlArray.includes(nowUrl)){
-    currentUrl = nowUrl;
     return;
   }
   let ossumeTabSelected = document.evaluate("//div[@role='tab' and @aria-selected='true' and descendant::span[text()='おすすめ']]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
@@ -39,7 +39,6 @@ function forceNewestTweetApply() {
   if (ossumeTabSelected && followTab) {
   console.log("TTT: フォロー中を選択します。")
 	followTab.click();
-	currentUrl = nowUrl;
   }
 }
 
