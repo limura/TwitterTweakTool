@@ -1,6 +1,6 @@
 function removeAllPromotionTweet() {
   let targets = document.evaluate(
-    "//article[child::div//*[name()='svg']/*[name()='g']/*[contains(@d, 'M19.498')]]",
+	"//main//section//div[@data-testid='placementTracking']",
     document,
     null,
     XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
@@ -15,6 +15,46 @@ function removeAllPromotionTweet() {
     //element.style.display="none";
     element.style.opacity = 0.1;
   }
+}
+
+function guessPostTimelineSortType() {
+	let targets = document.evaluate(
+		"//article[@role='article' and @data-testid='tweet' and descendant::button[contains(@aria-label,'Grok')]]//a[contains(@href,'/status/') and @role='link']/time/@datetime",
+    document,
+    null,
+    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+    null
+	);
+
+	// 新しい順なら true
+	let isNewestFirst = true;
+	for (let i = 0; i < targets.snapshotLength - 1; i++) {
+		// 現在の要素と次の要素の時刻を取得
+		let currentTime = new Date(targets.snapshotItem(i).textContent).getTime();
+		let nextTime = new Date(targets.snapshotItem(i + 1).textContent).getTime();
+
+		// もし「現在の要素」が「次の要素」より古ければ、降順ではない
+		if (currentTime < nextTime) {
+			isNewestFirst = false;
+			break;
+		}
+	}
+	return isNewestFirst;
+}
+
+function checkTimelineSortTypeAndRecover() {
+	let isNewestFirst = guessPostTimelineSortType();
+	if(isNewestFirst) {
+		return;
+	}
+	let followTabDropdown = document.evaluate("//div[@role='tab' and @aria-selected and @aria-haspopup='menu']//div[@dir='ltr']", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
+	if(followTabDropdown){
+		followTabDropdown.click();
+		setTimeout(()=> {
+			let newestSelector = document.evaluate("//div[@role='menu']//div[@data-testid='Dropdown']/div[@role='menuitem'][2]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0)
+			newestSelector?.click();
+		}, 500);
+	}
 }
 
 let currentUrl = "";
@@ -33,13 +73,23 @@ function forceNewestTweetApply() {
   if (!homeUrlArray.includes(nowUrl)){
     return;
   }
-  let ossumeTabSelected = document.evaluate("//div[@role='tab' and @aria-selected='true' and descendant::span[text()='おすすめ']]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
-  let followTab = document.evaluate("//div[@role='tab' and @aria-selected and descendant::span[text()='フォロー中']]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
-  // 「おすすめ」タブが選択されている場合には「フォロー中」タブを .click() する
-  if (ossumeTabSelected && followTab) {
-  console.log("TTT: フォロー中を選択します。")
-	followTab.click();
+  let tabElements = document.evaluate("//div[@role='tablist'][count(div[@role='presentation']/div[@role='tab' and @aria-selected]) >= 2 and count(div[@role='presentation']/div[@role='tab' and @aria-selected]) <= 5]/div[@role='presentation']/div[@role='tab' and @aria-selected]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+  if(tabElements.snapshotLength <= 1) {
+	return;
   }
+  let ossumeTab = tabElements.snapshotItem(0);
+  let ossumeTabSelected = ossumeTab.getAttribute('aria-selected') == 'true';
+  console.log("ossumeTabSelected?", ossumeTabSelected);
+  let followTab = tabElements.snapshotItem(1);
+  // 「おすすめ」タブが選択されている場合には「フォロー中」タブを .click() する
+  console.log("followTab", followTab);
+  var delay = false;
+  if (ossumeTabSelected && followTab) {
+	followTab.click();
+	delay = true;
+  }
+  // フォロー中をクリックしたなら少しまってから、並べ替えが「人気」なのか「最新」なのかを判断する
+  setTimeout(checkTimelineSortTypeAndRecover, delay * 2000);
 }
 
 function ClickMorePostContent() {
