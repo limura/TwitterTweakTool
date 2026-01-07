@@ -1,6 +1,6 @@
 function removeAllPromotionTweet() {
   let targets = document.evaluate(
-	"//main//section//div[@data-testid='placementTracking']",
+	"//main//section//div[@data-testid='placementTracking' and not(child::div[@data-testid='videoPlayer'])]",
     document,
     null,
     XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
