@@ -1,7 +1,7 @@
 {
   "name": "TwitterTweakTool",
   "description": "TwitterTweakTool は、X(Twitter) を少しだけ使いやすくする chrome extension です。",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "content_scripts": [
     {
       "matches": ["https://twitter.com/*", "https://mobile.twitter.com/*", "https://x.com/*", "https://mobile.x.com/*"],
